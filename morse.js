@@ -57,7 +57,80 @@
         error: '........'
     };
 
+    var lengthOf = {
+        dot: '=',
+        dash: '==='
+    };
+    var spaceBetween = {
+        letterParts: '.',
+        letters: '...',
+        words: '.......'
+    };
+
+    var TIME_UNIT = 100;
+
+    var context = new AudioContext();
+
+    var oscillator = context.createOscillator();
+    oscillator.frequency.value = 800;
+    oscillator.start(0);
+
+    function getTiming(str) {
+        str = str.toLowerCase();
+
+        var timing = [];
+
+        for (var i = 0; i < str.length; i++) {
+            var c = str[i];
+            if (c === ' ') {
+                timing.push(spaceBetween.words);
+            } else {
+                var t = codes[c] || codes.error,
+                    buffer = [];
+
+                for (var j = 0; j < t.length; j++) {
+                    buffer.push(({
+                        '.': lengthOf.dot,
+                        '-': lengthOf.dash
+                    })[t[j]]);
+                }
+
+                timing.push(buffer.join(spaceBetween.letterParts));
+
+                if (str[i + 1] !== ' ' && i + 1 !== str.length) {
+                    timing.push(spaceBetween.letters);
+                }
+            }
+        }
+
+        return timing.join('');
+    }
+
+    function playNext(str) {
+        if (str) {
+            var count = 0,
+                character = str[0];
+
+            for (; str[count] === character; count++) ;
+
+            if (character === '=') {
+                oscillator.connect(context.destination);
+            }
+
+            setTimeout(function() {
+                if (character === '=') {
+                    oscillator.disconnect(context.destination);
+                }
+
+                playNext(str.slice(count));
+            }, TIME_UNIT * count);
+        }
+    }
+
     return {
+        play: function(str) {
+            playNext(getTiming(str));
+        },
         encode: function(str) {
             str = str.toLowerCase();
 
