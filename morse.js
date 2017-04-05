@@ -57,22 +57,53 @@
         error: '........'
     };
 
-    return function(str) {
-        str = str.toLowerCase();
+    return {
+        encode: function(str) {
+            str = str.toLowerCase();
 
-        var encoded = [];
+            var encoded = [];
 
-        for (var i = 0; i < str.length; i++) {
-            var c = str[i];
-            if (codes.hasOwnProperty(c)) {
-                encoded.push(codes[c]);
-            } else if (c !== ' ') {
-                encoded.push(codes.error);
+            for (var i = 0; i < str.length; i++) {
+                var c = str[i];
+                if (codes.hasOwnProperty(c)) {
+                    encoded.push(codes[c]);
+                } else if (c !== ' ') {
+                    encoded.push(codes.error);
+                }
+
+                encoded.push(' ');
             }
 
-            encoded.push(' ');
-        }
+            return encoded.join('').trim();
+        },
+        decode: function(str) {
+            var decoded = [],
+                buffer = [];
 
-        return encoded.join('').trim();
+decoding:
+            for (var i = 0; i <= str.length; i++) {
+                var c = str[i];
+                if (c === '.' || c === '-') {
+                    buffer.push(c);
+                } else {
+                    if (!buffer.length) {
+                        decoded.push(' ');
+                        continue;
+                    }
+
+                    var t = buffer.join('');
+                    buffer = [];
+                    for (var j in codes) {
+                        if (codes[j] === t) {
+                            decoded.push(j);
+                            continue decoding;
+                        }
+                    }
+                    decoded.push('#'); // error??
+                }
+            }
+
+            return decoded.join('');
+        }
     }
 })();
