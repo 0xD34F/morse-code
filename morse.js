@@ -57,9 +57,11 @@
         error: '........'
     };
 
+    // длительности сигналов и пауз, один символ соответствует TIME_UNIT,
+    // '=' - сигнал есть, '.' - сигнала нет
     var lengthOf = {
-        dot: '=',
-        dash: '==='
+        '.': '=',
+        '-': '==='
     };
     var spaceBetween = {
         letterParts: '.',
@@ -85,17 +87,10 @@
             if (c === ' ') {
                 timing.push(spaceBetween.words);
             } else {
-                var t = codes[c] || codes.error,
-                    buffer = [];
-
-                for (var j = 0; j < t.length; j++) {
-                    buffer.push(({
-                        '.': lengthOf.dot,
-                        '-': lengthOf.dash
-                    })[t[j]]);
-                }
-
-                timing.push(buffer.join(spaceBetween.letterParts));
+                var letterParts = (codes[c] || codes.error).split('');
+                timing.push(letterParts.map(function(n) {
+                    return lengthOf[n];
+                }).join(spaceBetween.letterParts));
 
                 if (str[i + 1] !== ' ' && i + 1 !== str.length) {
                     timing.push(spaceBetween.letters);
@@ -109,16 +104,17 @@
     function playNext(str) {
         if (str) {
             var count = 0,
-                character = str[0];
+                character = str[0],
+                signalOn = character === '=';
 
             for (; str[count] === character; count++) ;
 
-            if (character === '=') {
+            if (signalOn) {
                 oscillator.connect(context.destination);
             }
 
             setTimeout(function() {
-                if (character === '=') {
+                if (signalOn) {
                     oscillator.disconnect(context.destination);
                 }
 
