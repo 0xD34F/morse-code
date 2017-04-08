@@ -111,25 +111,39 @@
         return timing.join('');
     }
 
-    function play() {
-        if (nowPlaying) {
+    function play(str) {
+        if (str && nowPlaying) {
             var count = 0,
-                character = nowPlaying[0],
+                character = str[0],
                 isSignal = character === '=';
 
-            for (; nowPlaying[count] === character; count++) ;
+            for (; str[count] === character; count++) ;
 
             signal(isSignal);
-            nowPlaying = nowPlaying.slice(count);
-            setTimeout(play, timeUnit * count);
+
+            setTimeout(function() {
+                play(str.slice(count));
+            }, timeUnit * count);
         } else {
             stop();
         }
     }
 
     function stop() {
-        nowPlaying = null;
-        signal(false);
+        if (nowPlaying) {
+            dispatchEvent('morse-signal-off', {
+                message: nowPlaying
+            });
+
+            nowPlaying = null;
+            signal(false);
+        }
+    }
+
+    function dispatchEvent(name, data) {
+        document.dispatchEvent(new CustomEvent(name, {
+            detail: data
+        }));
     }
 
     return {
@@ -151,12 +165,17 @@
             timeUnit = value;
         },
         isPlaying: function() {
-            return signalOn;
+            return !!nowPlaying;
         },
         play: function(str) {
-            if (!signalOn) {
-                nowPlaying = getTiming(str);
-                play();
+            if (!nowPlaying) {
+                nowPlaying = str;
+
+                dispatchEvent('morse-signal-on', {
+                    message: nowPlaying
+                });
+
+                play(getTiming(str));
             }
         },
         stop: stop,
