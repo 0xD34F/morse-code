@@ -57,7 +57,7 @@
         error: '........'
     };
 
-    // длительности сигналов и пауз, один символ соответствует TIME_UNIT,
+    // длительности сигналов и пауз, один символ соответствует timeUnit,
     // '=' - сигнал есть, '.' - сигнала нет
     var lengthOf = {
         '.': '=',
@@ -69,7 +69,7 @@
         words: '.......'
     };
 
-    var TIME_UNIT = 100;
+    var timeUnit = 100;
 
     var context = new AudioContext();
 
@@ -119,7 +119,7 @@
                 }
 
                 playNext(str.slice(count));
-            }, TIME_UNIT * count);
+            }, timeUnit * count);
         }
     }
 
@@ -129,6 +129,17 @@
         },
         set frequency(value) {
             oscillator.frequency.value = value;
+        },
+        get timeUnit() {
+            return timeUnit;
+        },
+        set timeUnit(value) {
+            value = +value;
+            if (isNaN(value)) {
+                throw new TypeError("Failed to set 'timeUnit' property on 'Morse': Invalid value.");
+            }
+
+            timeUnit = value;
         },
         play: function(str) {
             playNext(getTiming(str));
