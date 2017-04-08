@@ -124,6 +124,12 @@
     }
 
     return {
+        get frequency() {
+            return oscillator.frequency.value;
+        },
+        set frequency(value) {
+            oscillator.frequency.value = value;
+        },
         play: function(str) {
             playNext(getTiming(str));
         },
