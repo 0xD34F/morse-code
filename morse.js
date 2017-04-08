@@ -69,13 +69,23 @@
         words: '.......'
     };
 
-    var timeUnit = 100;
+    var timeUnit = 100,
+        nowPlaying = null,
+        signalOn = false;
 
     var context = new AudioContext();
 
     var oscillator = context.createOscillator();
     oscillator.frequency.value = 800;
     oscillator.start(0);
+
+    function signal(on) {
+        on = !!on;
+        if (signalOn !== on) {
+            signalOn = on;
+            oscillator[on ? 'connect' : 'disconnect'](context.destination);
+        }
+    }
 
     function getTiming(str) {
         str = str.toLowerCase();
@@ -101,26 +111,25 @@
         return timing.join('');
     }
 
-    function playNext(str) {
-        if (str) {
+    function play() {
+        if (nowPlaying) {
             var count = 0,
-                character = str[0],
-                signalOn = character === '=';
+                character = nowPlaying[0],
+                isSignal = character === '=';
 
-            for (; str[count] === character; count++) ;
+            for (; nowPlaying[count] === character; count++) ;
 
-            if (signalOn) {
-                oscillator.connect(context.destination);
-            }
-
-            setTimeout(function() {
-                if (signalOn) {
-                    oscillator.disconnect(context.destination);
-                }
-
-                playNext(str.slice(count));
-            }, timeUnit * count);
+            signal(isSignal);
+            nowPlaying = nowPlaying.slice(count);
+            setTimeout(play, timeUnit * count);
+        } else {
+            stop();
         }
+    }
+
+    function stop() {
+        nowPlaying = null;
+        signal(false);
     }
 
     return {
@@ -141,9 +150,16 @@
 
             timeUnit = value;
         },
-        play: function(str) {
-            playNext(getTiming(str));
+        isPlaying: function() {
+            return signalOn;
         },
+        play: function(str) {
+            if (!signalOn) {
+                nowPlaying = getTiming(str);
+                play();
+            }
+        },
+        stop: stop,
         encode: function(str) {
             str = str.toLowerCase();
 
