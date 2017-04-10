@@ -168,7 +168,7 @@
             return !!nowPlaying;
         },
         play: function(str) {
-            if (!nowPlaying) {
+            if (!nowPlaying && str) {
                 nowPlaying = str;
 
                 dispatchEvent('morse-signal-on', {
