@@ -58,15 +58,15 @@
     };
 
     // длительности сигналов и пауз, один символ соответствует timeUnit,
-    // '=' - сигнал есть, '.' - сигнала нет
+    // '1' - сигнал есть, '0' - сигнала нет
     var lengthOf = {
-        '.': '=',
-        '-': '==='
+        '.': '1',
+        '-': '111'
     };
     var spaceBetween = {
-        letterParts: '.',
-        letters: '...',
-        words: '.......'
+        letterParts: '0',
+        letters: '000',
+        words: '0000000'
     };
 
     var timeUnit = 100,
@@ -115,7 +115,7 @@
         if (str && nowPlaying) {
             var count = 0,
                 character = str[0],
-                isSignal = character === '=';
+                isSignal = character === '1';
 
             for (; str[count] === character; count++) ;
 
@@ -163,6 +163,12 @@
             }
 
             timeUnit = value;
+        },
+        get WPM() {
+            return Math.round(1200 / timeUnit);
+        },
+        set WPM(value) {
+            timeUnit = Math.round(1200 / value);
         },
         isPlaying: function() {
             return !!nowPlaying;
