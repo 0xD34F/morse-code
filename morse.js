@@ -140,13 +140,79 @@
         }
     }
 
+    function download(o) {
+        var channels = o.channels || 1,
+            sampleRate = o.sampleRate || (self.frequency * 2.5),
+            bitsPerSample = o.bitsPerSample || 16,
+            amplitude = o.amplitude || 32767,
+            frequency = o.frequency || self.frequency,
+            samplesInTimeUnit = parseInt(sampleRate * ((o.timeUnit || self.timeUnit) / 1000)),
+            timing = getTiming(o.message || '');
+
+        var data = [],
+            samples = 0;
+
+        for (var t = 0, i = 0; i < timing.length; i++) {
+            var signalOn = timing[i] === '1';
+
+            for (var j = 0; j < samplesInTimeUnit; j++, t++) {
+                for (var c = 0; c < channels; c++) {
+                    var v = signalOn ? amplitude * Math.sin(2 * Math.PI * frequency / sampleRate * t) : 0;
+                    data.push(pack(v));
+                    samples++;
+                }
+            }
+        }
+
+        var chunk1 = [
+            'fmt ',
+            pack(16, true), // Оставшаяся длина подцепочки
+            pack(1), // Аудио формат
+            pack(channels),
+            pack(sampleRate, true),
+            pack(sampleRate * channels * bitsPerSample / 8, true), // Количество байт на секунду воспроизведения
+            pack(channels * bitsPerSample / 8), // Количество байт на сэмпл, по всем каналам
+            pack(bitsPerSample)
+        ].join('');
+
+        var chunk2 = [
+            'data',
+            pack(samples * bitsPerSample / 8, true), // Количество байт в области данных
+            data.join('')
+        ].join('');
+
+        var audioData = 'data:audio/wav;base64,' + escape(btoa([
+            'RIFF',
+            pack(4 + chunk1.length + chunk2.length, true), // Размер оставшейся части файла, начиная с этой позиции
+            'WAVE',
+            chunk1,
+            chunk2
+        ].join('')));
+
+        var a = document.createElement('a');
+        a.href = audioData;
+        a.download = (o.fileName || o.message) + '.wav';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(audioData);  
+        }, 0); 
+    }
+
+    function pack(val, isLong) {
+        return isLong
+            ? String.fromCharCode(val & 255, (val >> 8) & 255, (val >> 16) & 255, (val >> 24) & 255)
+            : String.fromCharCode(val & 255, (val >> 8) & 255);
+    }
+
     function dispatchEvent(name, data) {
         document.dispatchEvent(new CustomEvent(name, {
             detail: data
         }));
     }
 
-    return {
+    var self = {
         get frequency() {
             return oscillator.frequency.value;
         },
@@ -185,6 +251,7 @@
             }
         },
         stop: stop,
+        download: download,
         encode: function(str) {
             str = str.toLowerCase();
 
@@ -232,5 +299,7 @@ decoding:
 
             return decoded.join('');
         }
-    }
+    };
+
+    return self;
 })();
