@@ -58,7 +58,7 @@ Morse.download({
 * `frequency`: частота сигнала (текущее значение Morse.frequency)
 * `timeUnit`: единица времени (текущее значение Morse.timeUnit)
 * `channels`: количество каналов (1)
-* `sampleRate`: частота дискретизации (текущее значение Morse.frequency * 2.5)
+* `sampleRate`: частота дискретизации ((frequency или текущее значение Morse.frequency) * 2.5)
 * `bitsPerSample`: количество бит на один сэмпл (16),
 * `amplitude`: амплитуда (32767)
 * `fileName`: имя выходного файла (совпадает со строкой message)

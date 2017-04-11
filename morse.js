@@ -142,10 +142,10 @@
 
     function download(o) {
         var channels = o.channels || 1,
-            sampleRate = o.sampleRate || (self.frequency * 2.5),
             bitsPerSample = o.bitsPerSample || 16,
             amplitude = o.amplitude || 32767,
             frequency = o.frequency || self.frequency,
+            sampleRate = o.sampleRate || (frequency * 2.5),
             samplesInTimeUnit = parseInt(sampleRate * ((o.timeUnit || self.timeUnit) / 1000)),
             timing = getTiming(o.message || '');
 
