@@ -130,14 +130,18 @@
     }
 
     function stop() {
-        if (nowPlaying) {
-            dispatchEvent('morse-signal-off', {
-                message: nowPlaying
-            });
-
-            nowPlaying = null;
-            signal(false);
+        if (!nowPlaying) {
+            return false;
         }
+
+        dispatchEvent('morse-signal-off', {
+            message: nowPlaying
+        });
+
+        nowPlaying = null;
+        signal(false);
+
+        return true;
     }
 
     function download(o) {
@@ -240,15 +244,19 @@
             return !!nowPlaying;
         },
         play: function(str) {
-            if (!nowPlaying && str) {
-                nowPlaying = str;
-
-                dispatchEvent('morse-signal-on', {
-                    message: nowPlaying
-                });
-
-                play(getTiming(str));
+            if (nowPlaying || !str) {
+                return false;
             }
+
+            nowPlaying = str;
+
+            dispatchEvent('morse-signal-on', {
+                message: nowPlaying
+            });
+
+            play(getTiming(str));
+
+            return true;
         },
         stop: stop,
         download: download,
