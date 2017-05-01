@@ -71,13 +71,16 @@
 
     var timeUnit = 100,
         nowPlaying = null,
-        signalOn = false;
+        signalOn = false,
+        context = null,
+        oscillator = null;
 
-    var context = new AudioContext();
-
-    var oscillator = context.createOscillator();
-    oscillator.frequency.value = 800;
-    oscillator.start(0);
+    if (window.AudioContext instanceof Function) {
+        context = new AudioContext();
+        oscillator = context.createOscillator();
+        oscillator.frequency.value = 800;
+        oscillator.start(0);
+    }
 
     function signal(on) {
         on = !!on;
@@ -185,23 +188,39 @@
             data.join('')
         ].join('');
 
-        var audioData = 'data:audio/wav;base64,' + escape(btoa([
+        var audioData = [
             'RIFF',
             pack(4 + chunk1.length + chunk2.length, true), // Размер оставшейся части файла, начиная с этой позиции
             'WAVE',
             chunk1,
             chunk2
-        ].join('')));
+        ].join('');
 
-        var a = document.createElement('a');
-        a.href = audioData;
-        a.download = (o.fileName || o.message) + '.wav';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function() {
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(audioData);  
-        }, 0); 
+        var fileName = (o.fileName || o.message) + '.wav';
+
+        if (navigator.msSaveBlob) {
+            var byteNumbers = new Array(audioData.length);
+
+            for (var i = 0; i < audioData.length; i++) {
+                byteNumbers[i] = audioData.charCodeAt(i);
+            }
+
+            var byteArray = new Uint8Array(byteNumbers),
+                blob = new Blob([ byteArray ], { type: 'audio/wav' });
+
+            navigator.msSaveBlob(blob, fileName);
+        } else {
+            audioData = 'data:audio/wav;base64,' + escape(btoa(audioData));
+            var a = document.createElement('a');
+            a.href = audioData;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function() {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(audioData);  
+            }, 0);
+        }
     }
 
     function pack(val, isLong) {
@@ -217,12 +236,6 @@
     }
 
     var self = {
-        get frequency() {
-            return oscillator.frequency.value;
-        },
-        set frequency(value) {
-            oscillator.frequency.value = value;
-        },
         get timeUnit() {
             return timeUnit;
         },
@@ -239,24 +252,6 @@
         },
         set WPM(value) {
             timeUnit = Math.round(1200 / value);
-        },
-        isPlaying: function() {
-            return !!nowPlaying;
-        },
-        play: function(str) {
-            if (nowPlaying || !str) {
-                return false;
-            }
-
-            nowPlaying = str;
-
-            dispatchEvent('morse-signal-on', {
-                message: nowPlaying
-            });
-
-            play(getTiming(str));
-
-            return true;
         },
         stop: stop,
         download: download,
@@ -308,6 +303,37 @@ decoding:
             return decoded.join('');
         }
     };
+
+    if (context) {
+        Object.defineProperty(self, 'frequency', {
+            get: function() {
+                return oscillator.frequency.value;
+            },
+            set: function(value) {
+                oscillator.frequency.value = value;
+            }
+        });
+
+        self.isPlaying = function() {
+            return !!nowPlaying;
+        };
+        self.play = function(str) {
+            if (nowPlaying || !str) {
+                return false;
+            }
+
+            nowPlaying = str;
+
+            dispatchEvent('morse-signal-on', {
+                message: nowPlaying
+            });
+
+            play(getTiming(str));
+
+            return true;
+        };
+        self.stop = stop;
+    }
 
     return self;
 })();
