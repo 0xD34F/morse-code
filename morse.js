@@ -196,29 +196,26 @@
             chunk2
         ].join('');
 
-        var fileName = (o.fileName || o.message) + '.wav';
+        var byteNumbers = new Array(audioData.length);
+        for (var i = 0; i < audioData.length; i++) {
+            byteNumbers[i] = audioData.charCodeAt(i);
+        }
+
+        var blob = new Blob([ new Uint8Array(byteNumbers) ], { type: 'audio/wav' }),
+            fileName = (o.fileName || o.message) + '.wav';
 
         if (navigator.msSaveBlob) {
-            var byteNumbers = new Array(audioData.length);
-
-            for (var i = 0; i < audioData.length; i++) {
-                byteNumbers[i] = audioData.charCodeAt(i);
-            }
-
-            var byteArray = new Uint8Array(byteNumbers),
-                blob = new Blob([ byteArray ], { type: 'audio/wav' });
-
             navigator.msSaveBlob(blob, fileName);
         } else {
-            audioData = 'data:audio/wav;base64,' + escape(btoa(audioData));
+            var url = window.URL.createObjectURL(blob);
             var a = document.createElement('a');
-            a.href = audioData;
+            a.href = url;
             a.download = fileName;
             document.body.appendChild(a);
             a.click();
             setTimeout(function() {
                 document.body.removeChild(a);
-                window.URL.revokeObjectURL(audioData);  
+                window.URL.revokeObjectURL(url);
             }, 0);
         }
     }
