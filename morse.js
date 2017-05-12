@@ -69,7 +69,8 @@
         words: '0000000'
     };
 
-    var timeUnit = 100,
+    var frequency = 800,
+        timeUnit = 100,
         nowPlaying = null,
         signalOn = false,
         context = null,
@@ -78,7 +79,7 @@
     if (window.AudioContext instanceof Function) {
         context = new AudioContext();
         oscillator = context.createOscillator();
-        oscillator.frequency.value = 800;
+        oscillator.frequency.value = frequency;
         oscillator.start(0);
     }
 
@@ -233,6 +234,20 @@
     }
 
     var self = {
+        get frequency() {
+            return frequency;
+        },
+        set frequency(value) {
+            value = +value;
+            if (isNaN(value)) {
+                throw new TypeError("Failed to set 'frequency' property on 'Morse': Invalid value.");
+            }
+
+            frequency = value;
+            if (oscillator) {
+                oscillator.frequency.value = value;
+            }
+        },
         get timeUnit() {
             return timeUnit;
         },
@@ -302,15 +317,6 @@ decoding:
     };
 
     if (context) {
-        Object.defineProperty(self, 'frequency', {
-            get: function() {
-                return oscillator.frequency.value;
-            },
-            set: function(value) {
-                oscillator.frequency.value = value;
-            }
-        });
-
         self.isPlaying = function() {
             return !!nowPlaying;
         };
