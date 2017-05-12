@@ -233,37 +233,36 @@
         }));
     }
 
+    function convertVal(value, propName) {
+        value = +value;
+        if (isNaN(value)) {
+            throw new TypeError("Failed to set '" + propName + "' property on 'Morse': Invalid value.");
+        }
+
+        return value;
+    }
+
     var self = {
         get frequency() {
             return frequency;
         },
         set frequency(value) {
-            value = +value;
-            if (isNaN(value)) {
-                throw new TypeError("Failed to set 'frequency' property on 'Morse': Invalid value.");
-            }
-
-            frequency = value;
+            frequency = convertVal(value, 'frequency');
             if (oscillator) {
-                oscillator.frequency.value = value;
+                oscillator.frequency.value = frequency;
             }
         },
         get timeUnit() {
             return timeUnit;
         },
         set timeUnit(value) {
-            value = +value;
-            if (isNaN(value)) {
-                throw new TypeError("Failed to set 'timeUnit' property on 'Morse': Invalid value.");
-            }
-
-            timeUnit = value;
+            timeUnit = convertVal(value, 'timeUnit');
         },
         get WPM() {
             return Math.round(1200 / timeUnit);
         },
         set WPM(value) {
-            timeUnit = Math.round(1200 / value);
+            timeUnit = Math.round(1200 / convertVal(value, 'WPM'));
         },
         stop: stop,
         download: download,
