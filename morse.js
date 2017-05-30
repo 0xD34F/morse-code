@@ -1,41 +1,44 @@
 ﻿var Morse = (function() {
     var codes = {
-        a: '.-',
-        b: '-...',
-        c: '-.-.',
-        d: '-..',
-        e: '.',
-        f: '..-.',
-        g: '--.',
-        h: '....',
-        i: '..',
-        j: '.---',
-        k: '-.-',
-        l: '.-..',
-        m: '--',
-        n: '-.',
-        o: '---',
-        p: '.--.',
-        q: '--.-',
-        r: '.-.',
-        s: '...',
-        t: '-',
-        u: '..-',
-        v: '...-',
-        w: '.--',
-        x: '-..-',
-        y: '-.--',
-        z: '--..',
-        0: '-----',
-        1: '.----',
-        2: '..---',
-        3: '...--',
-        4: '....-',
-        5: '.....',
-        6: '-....',
-        7: '--...',
-        8: '---..',
-        9: '----.',
+// letters
+        'A': '.-',
+        'B': '-...',
+        'C': '-.-.',
+        'D': '-..',
+        'E': '.',
+        'F': '..-.',
+        'G': '--.',
+        'H': '....',
+        'I': '..',
+        'J': '.---',
+        'K': '-.-',
+        'L': '.-..',
+        'M': '--',
+        'N': '-.',
+        'O': '---',
+        'P': '.--.',
+        'Q': '--.-',
+        'R': '.-.',
+        'S': '...',
+        'T': '-',
+        'U': '..-',
+        'V': '...-',
+        'W': '.--',
+        'X': '-..-',
+        'Y': '-.--',
+        'Z': '--..',
+// numbers
+        '0': '-----',
+        '1': '.----',
+        '2': '..---',
+        '3': '...--',
+        '4': '....-',
+        '5': '.....',
+        '6': '-....',
+        '7': '--...',
+        '8': '---..',
+        '9': '----.',
+// punctuation
         '.': '.-.-.-',
         ',': '--..--',
         '?': '..--..',
@@ -54,8 +57,13 @@
         '"': '.-..-.',
         '$': '...-..-',
         '@': '.--.-.',
+
         error: '........'
     };
+    var codesReverse = {};
+    for (var i in codes) {
+        codesReverse[codes[i]] = i;
+    }
 
     // длительности сигналов и пауз, один символ соответствует timeUnit,
     // '1' - сигнал есть, '0' - сигнала нет
@@ -92,7 +100,7 @@
     }
 
     function getTiming(str) {
-        str = str.toLowerCase();
+        str = str.toUpperCase();
 
         var timing = [];
 
@@ -267,7 +275,7 @@
         stop: stop,
         download: download,
         encode: function(str) {
-            str = str.toLowerCase();
+            str = str.toUpperCase();
 
             var encoded = [];
 
@@ -288,7 +296,6 @@
             var decoded = [],
                 buffer = [];
 
-decoding:
             for (var i = 0; i <= str.length; i++) {
                 var c = str[i];
                 if (c === '.' || c === '-') {
@@ -299,15 +306,11 @@ decoding:
                         continue;
                     }
 
-                    var t = buffer.join('');
-                    buffer = [];
-                    for (var j in codes) {
-                        if (codes[j] === t) {
-                            decoded.push(j);
-                            continue decoding;
-                        }
+                    var t = codesReverse[buffer.join('')];
+                    if (t) {
+                        decoded.push(t);
                     }
-                    decoded.push('#'); // error??
+                    buffer = [];
                 }
             }
 
